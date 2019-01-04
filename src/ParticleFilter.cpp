@@ -41,8 +41,9 @@ void ParticleFilter::print(void)
 
 Action ParticleFilter::modeParticle(Episodes *ep)
 {
-	double fw = 0.0;
-	double rot = 0.0;
+//	double fw = 0.0;
+	int fw = 0;
+//	double rot = 0.0;
 	double max = 0.0;
 	cout << "mode particle" << endl;
 	for(auto &p : particles){
@@ -50,12 +51,12 @@ Action ParticleFilter::modeParticle(Episodes *ep)
 		if(max < p.weight){
 			max = p.weight;
 			fw = e->linear_x;
-			rot = e->angular_z;
+//			rot = e->angular_z;
 		}
 	}
 	Action a;
 	a.linear_x = fw;
-	a.angular_z = rot;
+//	a.angular_z = rot;
 	return a;
 }
 
@@ -82,23 +83,24 @@ Action ParticleFilter::mode(Episodes *ep)
 
 	Action a;
 	a.linear_x = mode_a->linear_x;
-	a.angular_z = mode_a->angular_z;
+//	a.angular_z = mode_a->angular_z;
 	return a;
 }
 
 Action ParticleFilter::average(Episodes *ep)
 {
-	double fw = 0.0;
-	double rot = 0.0;
+//	double fw = 0.0;
+	int fw = 0;
+//	double rot = 0.0;
 	cout << "avg" << endl;
 	for(auto &p : particles){
 		auto e = ep->actionAt(p.pos+1);
 		fw += p.weight * e->linear_x;
-		rot += p.weight * e->angular_z;
+//		rot += p.weight * e->angular_z;
 	}
 	Action a;
 	a.linear_x = fw;
-	a.angular_z = rot;
+//	a.angular_z = rot;
 	return a;
 }
 
@@ -141,12 +143,19 @@ Action ParticleFilter::sensorUpdate(Observation *obs, Action *act, Episodes *ep,
 //	return average(ep);
 }
 
+
 double ParticleFilter::likelihood(Observation *past, Observation *last)
 {
+	/*
 	double diff[4] = {	past->log_lf - last->log_lf,
 				past->log_ls - last->log_ls,
 				past->log_rs - last->log_rs,
 				past->log_rf - last->log_rf };
+	*/
+	double diff[4] = {	past->log_cartpos - last->log_cartpos,
+				past->log_cartvel - last->log_cartvel,
+				past->log_poleang - last->log_poleang,
+				past->log_poleangr - last->log_poleangr};
 	/*
 	double diff[4] = {	past->lf - last->lf,
 				past->ls - last->ls,
@@ -174,19 +183,26 @@ double ParticleFilter::likelihood(Observation *past, Observation *last)
 	return ans;
 }
 
+
 double ParticleFilter::likelihood(Observation *past, Observation *last, Action *past_a, Action *last_a)
 {
+	/*
 	double diff[4] = {	past->log_lf - last->log_lf,
 				past->log_ls - last->log_ls,
 				past->log_rs - last->log_rs,
 				past->log_rf - last->log_rf };
+	*/
+	double diff[4] = {	past->log_cartpos - last->log_cartpos,
+				past->log_cartvel - last->log_cartvel,
+				past->log_poleang - last->log_poleang,
+				past->log_poleangr - last->log_poleangr};
 
 	double ans = 1.0;
 	for(double &d : diff){
 		ans /= (1 + fabs(d));
 	}
 	ans /= (1 + 0.2*fabs(past_a->linear_x - last_a->linear_x));
-	ans /= (1 + 0.2*fabs(past_a->angular_z - last_a->angular_z));
+//	ans /= (1 + 0.2*fabs(past_a->angular_z - last_a->angular_z));
 
 	return ans;
 }

@@ -8,7 +8,8 @@
 #include "Observation.h"
 using namespace std;
 
-struct Action{double linear_x;double angular_z;};
+//struct Action{double linear_x;double angular_z;};
+struct Action{int linear_x;};
 
 class Event{
 public:

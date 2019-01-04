@@ -5,23 +5,30 @@
 
 import rospy, rosbag, rosparam
 import math, sys, random, datetime
-from geometry_msgs.msg import Twist
-from std_srvs.srv import Trigger, TriggerResponse
-from raspimouse_ros_2.msg import LightSensorValues, ButtonValues
+#from geometry_msgs.msg import Twist
+#from std_srvs.srv import Trigger, TriggerResponse
+#from raspimouse_ros_2.msg import LightSensorValues, ButtonValues
 from raspimouse_gamepad_teach_and_replay.msg import Event
+from std_msgs.msg import Int16
+from pfoe_cartpole.msg import CartPoleValues, ButtonValues
+
 
 class Logger():
     def __init__(self):
-        self.sensor_values = LightSensorValues()
-        self.cmd_vel = Twist()
+        #self.sensor_values = LightSensorValues()
+        #self.cmd_vel = Twist()
+        self.sensor_values = CartPoleValues()
+        self.cmd_vel = Int16()
 
         self._decision = rospy.Publisher('/event',Event,queue_size=100)
-	rospy.Subscriber('/buttons', ButtonValues, self.button_callback, queue_size=1)
-        rospy.Subscriber('/lightsensors', LightSensorValues, self.sensor_callback)
-        rospy.Subscriber('/cmd_vel', Twist, self.cmdvel_callback)
+        rospy.Subscriber('/buttons', ButtonValues, self.button_callback, queue_size=1)
+        #rospy.Subscriber('/lightsensors', LightSensorValues, self.sensor_callback)
+        #rospy.Subscriber('/cmd_vel', Twist, self.cmdvel_callback)
+        rospy.Subscriber('/cartpole_state', CartPoleValues, self.sensor_callback)
+        rospy.Subscriber('/key_in', Int16, self.cmdvel_callback)
 
-	self.on = False
-	self.bag_open = False
+        self.on = False
+        self.bag_open = False
 
     def button_callback(self,msg):
         self.on = msg.front_toggle
@@ -33,35 +40,40 @@ class Logger():
         self.cmd_vel = messages
 
     def output_decision(self):
-	if not self.on:
-	    if self.bag_open:
-		self.bag.close()
-		self.bag_open = False
-	    return
-	else:
-	    if not self.bag_open:
-		filename = datetime.datetime.today().strftime("%Y%m%d_%H%M%S") + '.bag'
-		rosparam.set_param("/current_bag_file", filename)
-		self.bag = rosbag.Bag(filename, 'w')
-		self.bag_open = True
+        if not self.on:
+            if self.bag_open:
+                self.bag.close()
+                self.bag_open = False
+            return
+        else:
+            if not self.bag_open:
+                filename = datetime.datetime.today().strftime("%Y%m%d_%H%M%S") + '.bag'
+                rosparam.set_param("/current_bag_file", filename)
+                self.bag = rosbag.Bag(filename, 'w')
+                self.bag_open = True
 
-	s = self.sensor_values
-	a = self.cmd_vel
-	e = Event()
+        s = self.sensor_values
+        a = self.cmd_vel
+        e = Event()
 
-        e.left_side = s.left_side
-        e.right_side = s.right_side
-        e.left_forward = s.left_forward
-        e.right_forward = s.right_forward
-        e.linear_x = a.linear.x
-        e.angular_z = a.angular.z
+        #e.left_side = s.left_side
+        #e.right_side = s.right_side
+        #e.left_forward = s.left_forward
+        #e.right_forward = s.right_forward
+        #e.linear_x = a.linear.x
+        #e.angular_z = a.angular.z
+        e.cart_position = s.cart_position
+        e.cart_velocity = s.cart_velocity
+        e.pole_angle = s.pole_angle
+        e.pole_angular = s.pole_angular
+        e.linear_x = a.data
 
         self._decision.publish(e)
-	self.bag.write('/event', e)
+        self.bag.write('/event', e)
 
     def run(self):
         rate = rospy.Rate(10)
-        data = Twist()
+        #data = Twist()
 
         while not rospy.is_shutdown():
             self.output_decision()

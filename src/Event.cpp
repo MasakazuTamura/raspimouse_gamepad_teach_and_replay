@@ -11,6 +11,7 @@ Event::Event(Observation obs,Action act, int rw)
 	counter = 0;
 }
 
+/*
 string Event::str(void)
 {
 //	string id = to_string(episode_id) + '\t' + to_string(event_id);
@@ -22,6 +23,20 @@ string Event::str(void)
 		+ to_string(observation.rs) + '\t' 
 		+ to_string(observation.rf);
 
+	string t = to_string(time.toSec());
+
+	return id + '\t' + t + '\t' + a + '\t' + s + " 0";
+}
+*/
+
+string Event::str(void)
+{
+	string id = to_string(event_id);
+	string a = to_string(action.linear_x);
+	string s = to_string(observation.cartpos) + '\t'
+			+ to_string(observation.cartvel) + '\t'
+			+ to_string(observation.poleang) + '\t'
+			+ to_string(observation.poleangr);
 	string t = to_string(time.toSec());
 
 	return id + '\t' + t + '\t' + a + '\t' + s + " 0";
