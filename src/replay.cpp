@@ -101,7 +101,6 @@ int main(int argc, char **argv)
 	init(argc,argv,"go_around");
 	NodeHandle n;
 	np = &n;
-	cout << "hoge1" << endl;	//test
 
 //	Subscriber sub = n.subscribe("lightsensors", 1, sensorCallback);
 	Subscriber sub = n.subscribe("cartpole_state", 1, sensorCallback);
@@ -118,17 +117,12 @@ int main(int argc, char **argv)
 //	std_srvs::Trigger t;
 //	motor_on.call(t);
 
-	cout << "hoge2" << endl;	//test
 //	geometry_msgs::Twist msg;
 	std_msgs::Int16 msg;
-	cout << "pick1" << endl;	//test
-	pf.init();
-	cout << "pick2" << endl;	//test
+//	pf.init();	//it cause segmentation fault on desctop
 	Rate loop_rate(10);
-	cout << "hoge3" << endl;	//test
 //	Action act = {0.0,0.0};
 	Action act = {0};
-	cout << "while mae" << endl;	//test
 	while(ok()){
 		if(not on){
 			cout << "idle" << endl;
