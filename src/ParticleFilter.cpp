@@ -1,3 +1,4 @@
+#include <iostream>	//test
 #include <vector>
 #include "Particle.h"
 #include "ParticleFilter.h"
@@ -19,6 +20,10 @@ ParticleFilter::ParticleFilter(int num, Episodes *ep)
 void ParticleFilter::init(void)
 {
 	double w = 1.0/particles.size();
+
+	cout << "data size is " << episodes->data.size() << endl;	//test
+	for(int i = 0; i < episodes->data.size(); i++)	//test
+		cout << episodes->data.at(i).time << endl;	//test
 	for(auto &p : particles){
 		p.pos = prob.uniformRandInt(0,episodes->data.size()-2);
 		p.weight = w;
