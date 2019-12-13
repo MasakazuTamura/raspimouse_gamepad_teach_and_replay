@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 #include <signal.h>
+#include <chrono>
+#include <thread>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
 #include <ros/package.h> 
@@ -27,7 +29,8 @@ ParticleFilter pf(1000,&ep);
 Observation sensor_values;
 
 NodeHandle *np;
-int sum_forward = 0;
+//int sum_forward = 0;
+bool cartpole_done = false;
 
 bool on = false;
 bool bag_read = false;
@@ -48,6 +51,7 @@ void sensorCallback(const raspimouse_ros_2::LightSensorValues::ConstPtr& msg)
 void sensorCallback(const pfoe_cartpole::CartPoleValues::ConstPtr& msg)
 {
 	sensor_values.setValues(msg->cart_position, msg->cart_velocity, msg->pole_angle, msg->pole_angular);
+	cartpole_done = msg->done;
 }
 
 /*
@@ -120,12 +124,15 @@ int main(int argc, char **argv)
 //	geometry_msgs::Twist msg;
 	std_msgs::Int16 msg;
 //	pf.init();	//it cause segmentation fault on desctop
-	Rate loop_rate(10);
+//	Rate loop_rate(10);
+	Rate loop_rate(8);
 //	Action act = {0.0,0.0};
 	Action act = {0};
+	std::vector<double> elapsedtimes;
+		raspimouse_gamepad_teach_and_replay::PFoEOutput out;
 	while(ok()){
 		if(not on){
-			cout << "idle" << endl;
+//			cout << "idle" << endl;
 			bag_read = false;
 			spinOnce();
 			loop_rate.sleep();
@@ -140,7 +147,23 @@ int main(int argc, char **argv)
 			loop_rate.sleep();
 			continue;
 		}
-		raspimouse_gamepad_teach_and_replay::PFoEOutput out;
+		if(cartpole_done){
+//			cout << "--------------" << endl;
+			double sum = 0.0;
+			for(auto elem : elapsedtimes){
+//			    std::cout<< elem << endl;
+				sum += elem;
+			}
+			sum /= elapsedtimes.size();
+			cout << "\r**************" << endl;
+			cout << "\rroop time =" << sum << "micro sec." << endl;
+			cout << "\r**************" << endl;
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			elapsedtimes.clear();
+		}
+
+		std::chrono::system_clock::time_point  start, end;
+		start = std::chrono::system_clock::now();
 
 		act = pf.sensorUpdate(&sensor_values, &act, &ep, &out);
 //		msg.linear.x = act.linear_x;
@@ -162,6 +185,9 @@ int main(int argc, char **argv)
 		pfoe_out.publish(out);
 		pf.motionUpdate(&ep);
 
+		end = std::chrono::system_clock::now();
+		double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+		elapsedtimes.push_back(elapsed);
 		spinOnce();
 		loop_rate.sleep();
 	}

@@ -153,10 +153,17 @@ double ParticleFilter::likelihood(Observation *past, Observation *last)
 				past->log_rs - last->log_rs,
 				past->log_rf - last->log_rf };
 	*/
-	double diff[4] = {	past->log_cartpos - last->log_cartpos,
-				past->log_cartvel - last->log_cartvel,
-				past->log_poleang - last->log_poleang,
-				past->log_poleangr - last->log_poleangr};
+	/*//4state_cartpole
+	double diff[4] = {	past->cartpos - last->cartpos,
+				past->cartvel - last->cartvel,
+				past->poleang - last->poleang,
+				past->poleangr - last->poleangr};
+	*/
+	//3state_cartpole(without_cartpos)
+	double diff[3] = {	past->cartvel - last->cartvel,
+				past->poleang - last->poleang,
+				past->poleangr - last->poleangr};
+	
 	/*
 	double diff[4] = {	past->lf - last->lf,
 				past->ls - last->ls,
@@ -193,10 +200,10 @@ double ParticleFilter::likelihood(Observation *past, Observation *last, Action *
 				past->log_rs - last->log_rs,
 				past->log_rf - last->log_rf };
 	*/
-	double diff[4] = {	past->log_cartpos - last->log_cartpos,
-				past->log_cartvel - last->log_cartvel,
-				past->log_poleang - last->log_poleang,
-				past->log_poleangr - last->log_poleangr};
+	double diff[4] = {	past->cartpos - last->cartpos,
+				past->cartvel - last->cartvel,
+				past->poleang - last->poleang,
+				past->poleangr - last->poleangr};
 
 	double ans = 1.0;
 	for(double &d : diff){
