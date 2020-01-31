@@ -3,6 +3,7 @@
 #include "ParticleFilter.h"
 #include "Observation.h"
 #include "Episodes.h"
+#include <cmath>
 using namespace std;
 
 ParticleFilter::ParticleFilter(int num, Episodes *ep)
@@ -145,6 +146,20 @@ Action ParticleFilter::sensorUpdate(Observation *obs, Action *act, Episodes *ep,
 }
 
 
+double ParticleFilter::log_or_raw(double past, double last)
+{
+	double result;
+
+	if(past * last > 0){
+		result = log10(fabs(past)) - log10(fabs(last));
+	}else{
+		result = past - last;
+	}
+
+	return result;
+}
+
+
 double ParticleFilter::likelihood(Observation *past, Observation *last)
 {
 	/*
@@ -153,17 +168,23 @@ double ParticleFilter::likelihood(Observation *past, Observation *last)
 				past->log_rs - last->log_rs,
 				past->log_rf - last->log_rf };
 	*/
-	/*//4state_cartpole
+	//4state_cartpole
 	double diff[4] = {	past->cartpos - last->cartpos,
 				past->cartvel - last->cartvel,
 				past->poleang - last->poleang,
 				past->poleangr - last->poleangr};
-	*/
-	//3state_cartpole(without_cartpos)
+	
+	/*//3state_cartpole(without_cartpos)
 	double diff[3] = {	past->cartvel - last->cartvel,
 				past->poleang - last->poleang,
 				past->poleangr - last->poleangr};
-	
+	*/
+	/*//log_or_raw_cartpole
+	double diff[4] = {	log_or_raw(past->cartpos, last->cartpos),
+				log_or_raw(past->cartvel, last->cartvel),
+				log_or_raw(past->poleang, last->poleang),
+				log_or_raw(past->poleangr, last->poleangr)};
+	*/
 	/*
 	double diff[4] = {	past->lf - last->lf,
 				past->ls - last->ls,

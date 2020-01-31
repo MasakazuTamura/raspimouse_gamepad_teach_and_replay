@@ -30,6 +30,7 @@ private:
 
 	Episodes *episodes;
 
+	double log_or_raw(double past, double last);
 	double likelihood(Observation *past, Observation *last);
 	double likelihood(Observation *past, Observation *last, Action *past_a, Action *last_a);
 

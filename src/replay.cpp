@@ -34,6 +34,7 @@ bool cartpole_done = false;
 
 bool on = false;
 bool bag_read = false;
+bool sensor_recieved = false;
 
 //void buttonCallback(const raspimouse_ros_2::ButtonValues::ConstPtr& msg)
 void buttonCallback(const pfoe_cartpole::ButtonValues::ConstPtr& msg)
@@ -52,6 +53,7 @@ void sensorCallback(const pfoe_cartpole::CartPoleValues::ConstPtr& msg)
 {
 	sensor_values.setValues(msg->cart_position, msg->cart_velocity, msg->pole_angle, msg->pole_angular);
 	cartpole_done = msg->done;
+	sensor_recieved = true;
 }
 
 /*
@@ -81,7 +83,7 @@ void readEpisodes(string file)
 	double start = view.getBeginTime().toSec();
 	double end = view.getEndTime().toSec();
 	for(auto i : view){
-	        auto s = i.instantiate<raspimouse_gamepad_teach_and_replay::Event>();
+		auto s = i.instantiate<raspimouse_gamepad_teach_and_replay::Event>();
 
 //		Observation obs(s->left_forward,s->left_side,s->right_side,s->right_forward);
 		Observation obs(s->cart_position, s->cart_velocity, s->pole_angle, s->pole_angular);
@@ -125,7 +127,7 @@ int main(int argc, char **argv)
 	std_msgs::Int16 msg;
 //	pf.init();	//it cause segmentation fault on desctop
 //	Rate loop_rate(10);
-	Rate loop_rate(8);
+	Rate loop_rate(20);
 //	Action act = {0.0,0.0};
 	Action act = {0};
 	std::vector<double> elapsedtimes;
@@ -147,6 +149,12 @@ int main(int argc, char **argv)
 			loop_rate.sleep();
 			continue;
 		}
+		if(not sensor_recieved){
+			spinOnce();
+			loop_rate.sleep();
+			continue;
+		}
+
 		if(cartpole_done){
 //			cout << "--------------" << endl;
 			double sum = 0.0;
@@ -188,6 +196,8 @@ int main(int argc, char **argv)
 		end = std::chrono::system_clock::now();
 		double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
 		elapsedtimes.push_back(elapsed);
+
+		sensor_recieved = false;
 		spinOnce();
 		loop_rate.sleep();
 	}
